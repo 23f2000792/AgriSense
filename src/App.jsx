@@ -11,7 +11,7 @@ import Login from './components/Login';
 import ReloadPrompt from './components/ReloadPrompt';
 import { db } from './db/db';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { socket, syncVisits } from './api';
+import { syncVisits } from './api';
 import './App.css';
 
 const App = () => {
@@ -31,16 +31,17 @@ const App = () => {
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
 
-    // Socket.io Real-Time Synchronization
-    socket.on('visits-updated', async (data) => {
-      console.log('Real-time update received:', data);
-      await syncVisits();
-    });
+    // Background Polling for Real-Time feel (every 30 seconds)
+    const interval = setInterval(async () => {
+      if (navigator.onLine && localStorage.getItem('token')) {
+        await syncVisits();
+      }
+    }, 30000);
 
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
-      socket.off('visits-updated');
+      clearInterval(interval);
     };
   }, []);
 

@@ -1,8 +1,6 @@
-import { io } from 'socket.io-client';
 import { db } from './db/db';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
-export const socket = io(import.meta.env.VITE_WS_URL || 'http://localhost:3001');
+const API_URL = import.meta.env.VITE_API_URL || '/api';
 
 export const login = async (phone, password) => {
   const res = await fetch(`${API_URL}/login`, {
@@ -55,11 +53,9 @@ export const pushOutcomes = async () => {
 // Open-Meteo Real-Time Weather Integration for India
 export const fetchLiveWeatherAlerts = async () => {
   try {
-    // Coordinates for Guntur, AP (mocking the rep's location)
     const res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=16.2997&longitude=80.4573&daily=precipitation_sum,temperature_2m_max&timezone=Asia%2FKolkata');
     const data = await res.json();
     
-    // Check if rain is high tomorrow
     const rainTomorrow = data.daily.precipitation_sum[1];
     
     await db.anomalies.clear();
