@@ -3,10 +3,13 @@ import { User, RefreshCw, DownloadCloud, Database, LogOut } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { db } from '../db/db';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { pushOutcomes, syncVisits } from '../api';
+import { pushOutcomes, syncVisits } from '../services/api.service';
+import { useAuth } from '../contexts/AuthContext';
+import toast from 'react-hot-toast';
 
-const Profile = ({ onLogout }) => {
+const Profile = () => {
   const { t } = useTranslation();
+  const { logout } = useAuth();
   const profile = useLiveQuery(() => db.profile.toCollection().first());
   const unsyncedOutcomes = useLiveQuery(() => db.outcomes.where('synced').equals(0).count()) || 0;
   const [syncing, setSyncing] = useState(false);
@@ -16,13 +19,20 @@ const Profile = ({ onLogout }) => {
     try {
       await pushOutcomes();
       await syncVisits();
-      await db.profile.update(profile.id, { lastSync: new Date().toISOString() });
-      alert("Data synced successfully with backend!");
+      if (profile) {
+        await db.profile.update(profile.id, { lastSync: new Date().toISOString() });
+      }
+      toast.success("Data synced successfully with backend!");
     } catch (err) {
-      alert("Sync failed. Check your network connection.");
+      toast.error("Sync failed. Check your network connection.");
     } finally {
       setSyncing(false);
     }
+  };
+
+  const handleLogout = async () => {
+    await logout();
+    toast("Signed out successfully");
   };
 
   return (
@@ -37,7 +47,7 @@ const Profile = ({ onLogout }) => {
         <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>{profile?.territory}</p>
         
         <button 
-          onClick={onLogout}
+          onClick={handleLogout}
           style={{ marginTop: '16px', background: 'rgba(239, 68, 68, 0.2)', color: 'var(--alert-danger)', border: '1px solid var(--alert-danger)', padding: '8px 16px', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontWeight: 600 }}
         >
           <LogOut size={16} /> Sign Out

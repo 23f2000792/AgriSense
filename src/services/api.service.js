@@ -1,4 +1,4 @@
-import { db } from './db/db';
+import { db } from '../db/db';
 
 const API_URL = import.meta.env.VITE_API_URL || '/api';
 
@@ -79,4 +79,19 @@ export const fetchLiveWeatherAlerts = async () => {
   } catch (err) {
     console.error("Failed to fetch live weather", err);
   }
+};
+
+export const addVisit = async (visitData) => {
+  const token = localStorage.getItem('token');
+  if (!token) return;
+  const res = await fetch(`${API_URL}/visits`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    },
+    body: JSON.stringify(visitData)
+  });
+  if (!res.ok) throw new Error('Failed to add visit');
+  return res.json();
 };
