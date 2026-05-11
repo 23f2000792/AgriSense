@@ -4,7 +4,9 @@ import L from 'leaflet';
 import { useTranslation } from 'react-i18next';
 import { db } from '../db/db';
 import { useLiveQuery } from 'dexie-react-hooks';
+import { BrainCircuit } from 'lucide-react';
 import 'leaflet/dist/leaflet.css';
+import './MapView.css';
 
 // Fix for default Leaflet icons in React
 delete L.Icon.Default.prototype._getIconUrl;
@@ -35,7 +37,7 @@ const MapView = () => {
 
   return (
     <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', height: '100%', gap: '16px' }}>
-      <div style={{ flex: 1, borderRadius: '16px', overflow: 'hidden', border: '1px solid var(--border-color)' }}>
+      <div style={{ flex: 1, borderRadius: '16px', overflow: 'hidden', border: '1px solid var(--border-color)', position: 'relative' }}>
         <MapContainer center={center} zoom={13} style={{ height: '100%', width: '100%' }}>
           <TileLayer
             attribution='&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
@@ -51,13 +53,24 @@ const MapView = () => {
               </Popup>
             </Marker>
           ))}
-          <Polyline positions={routePositions} color="var(--accent-primary)" weight={3} dashArray="5, 10" />
+          <Polyline 
+            positions={routePositions} 
+            color="var(--accent-primary)" 
+            weight={4} 
+            dashArray="10, 10" 
+            className="animated-route"
+          />
         </MapContainer>
       </div>
 
       <div className="glass-panel" style={{ padding: '16px' }}>
-        <h3 style={{ fontSize: '1rem', marginBottom: '8px' }}>Route Summary</h3>
-        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+        <div className="ai-route-header">
+          <h3 style={{ fontSize: '1rem', margin: 0 }}>Route Summary</h3>
+          <div className="ai-route-badge">
+            <BrainCircuit size={12} /> AI Optimized
+          </div>
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '8px' }}>
           <span>Total Stops: {visits.length}</span>
           <span>Est. Distance: 18.4 km</span>
         </div>
