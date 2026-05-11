@@ -1,0 +1,209 @@
+.dashboard-container {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* Overview Section */
+.overview-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.greeting h2 {
+  font-size: 1.5rem;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.greeting p {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+.progress-ring-container {
+  position: relative;
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.progress-text {
+  position: absolute;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--accent-primary);
+}
+
+/* Anomalies */
+.section-title {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 12px;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.anomalies-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.anomaly-card {
+  padding: 16px;
+  display: flex;
+  gap: 16px;
+  border-left: 4px solid transparent;
+}
+
+.anomaly-card.alert-danger {
+  border-left-color: var(--alert-danger);
+  background: linear-gradient(90deg, var(--alert-danger-bg), transparent);
+}
+
+.anomaly-card.alert-warning {
+  border-left-color: var(--alert-warning);
+  background: linear-gradient(90deg, var(--alert-warning-bg), transparent);
+}
+
+.anomaly-icon {
+  margin-top: 2px;
+}
+
+.alert-danger .anomaly-icon { color: var(--alert-danger); }
+.alert-warning .anomaly-icon { color: var(--alert-warning); }
+
+.anomaly-content h4 {
+  font-size: 0.9rem;
+  margin-bottom: 4px;
+}
+
+.anomaly-content p {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+
+.anomaly-time {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+/* Priority Visits */
+.visits-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.visit-card {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  position: relative;
+  cursor: pointer;
+}
+
+.visit-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.visit-info {
+  display: flex;
+  gap: 12px;
+}
+
+.visit-icon-wrapper {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent-primary);
+}
+
+.visit-details h4 {
+  font-size: 1rem;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+
+.visit-details p {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.priority-badge {
+  background: rgba(16, 185, 129, 0.15);
+  color: var(--accent-primary);
+  padding: 4px 8px;
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.priority-badge.high {
+  background: rgba(239, 68, 68, 0.15);
+  color: var(--alert-danger);
+}
+
+.visit-reason {
+  background: rgba(0, 0, 0, 0.2);
+  padding: 12px;
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  border-left: 2px solid var(--accent-secondary);
+}
+
+.visit-action {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 4px;
+}
+
+.action-text {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.start-btn {
+  background: var(--accent-primary);
+  color: #fff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: var(--radius-full);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s;
+}
+
+.start-btn:hover {
+  background: var(--accent-secondary);
+  transform: scale(1.05);
+}
