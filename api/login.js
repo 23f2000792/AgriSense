@@ -2,7 +2,12 @@ import { Pool } from 'pg';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 
-const connectionString = (process.env.DATABASE_URL || process.env.POSTGRES_URL || process.env.SUPABASE_URL || '').replace(/\?sslmode=[^&]*/, '');
+let connectionString = process.env.DATABASE_URL || process.env.POSTGRES_URL || process.env.SUPABASE_URL || '';
+try {
+  const url = new URL(connectionString);
+  url.searchParams.delete('sslmode');
+  connectionString = url.toString();
+} catch (e) {}
 
 const pool = new Pool({
   connectionString,
