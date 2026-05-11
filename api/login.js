@@ -2,8 +2,10 @@ import { Pool } from 'pg';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 
+const connectionString = (process.env.DATABASE_URL || process.env.POSTGRES_URL || process.env.SUPABASE_URL || '').replace(/\?sslmode=[^&]*/, '');
+
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL || process.env.POSTGRES_URL || process.env.SUPABASE_URL,
+  connectionString,
   ssl: { rejectUnauthorized: false }
 });
 
