@@ -1,5 +1,10 @@
-import { sql } from '@vercel/postgres';
+import { Pool } from 'pg';
 import jwt from 'jsonwebtoken';
+
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL || process.env.POSTGRES_URL || process.env.SUPABASE_URL,
+  ssl: { rejectUnauthorized: false }
+});
 
 const JWT_SECRET = process.env.JWT_SECRET || 'agrisense-secret-key-2026';
 
@@ -11,7 +16,7 @@ export default async function handler(req, res) {
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
-    const { rows } = await sql`SELECT * FROM visits WHERE repId = ${decoded.id} AND status != 'completed'`;
+    const { rows } = await pool.query("SELECT * FROM visits WHERE repId = $1 AND status != 'completed'", [decoded.id]);
     
     // Parse JSON nextBestAction from Postgres JSONB
     const visits = rows.map(r => ({ ...r, nextBestAction: typeof r.nextbestaction === 'string' ? JSON.parse(r.nextbestaction) : r.nextbestaction }));

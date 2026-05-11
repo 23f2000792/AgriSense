@@ -1,5 +1,10 @@
-import { sql } from '@vercel/postgres';
+import { Pool } from 'pg';
 import jwt from 'jsonwebtoken';
+
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL || process.env.POSTGRES_URL || process.env.SUPABASE_URL,
+  ssl: { rejectUnauthorized: false }
+});
 
 const JWT_SECRET = process.env.JWT_SECRET || 'agrisense-secret-key-2026';
 
@@ -16,11 +21,11 @@ export default async function handler(req, res) {
     if (!outcomes || !outcomes.length) return res.status(200).json({ success: true });
 
     for (const o of outcomes) {
-      await sql`
-        INSERT INTO outcomes (visitId, repId, status, feedback, timestamp) 
-        VALUES (${o.visitId}, ${decoded.id}, ${o.status}, ${o.feedback}, ${o.timestamp})
-      `;
-      await sql`UPDATE visits SET status = 'completed' WHERE id = ${o.visitId}`;
+      await pool.query(
+        `INSERT INTO outcomes (visitId, repId, status, feedback, timestamp) VALUES ($1, $2, $3, $4, $5)`,
+        [o.visitId, decoded.id, o.status, o.feedback, o.timestamp]
+      );
+      await pool.query(`UPDATE visits SET status = 'completed' WHERE id = $1`, [o.visitId]);
     }
 
     return res.status(200).json({ success: true, message: 'Sync complete' });

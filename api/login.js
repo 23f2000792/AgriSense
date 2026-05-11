@@ -1,6 +1,11 @@
-import { sql } from '@vercel/postgres';
+import { Pool } from 'pg';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL || process.env.POSTGRES_URL || process.env.SUPABASE_URL,
+  ssl: { rejectUnauthorized: false }
+});
 
 const JWT_SECRET = process.env.JWT_SECRET || 'agrisense-secret-key-2026';
 
@@ -9,7 +14,7 @@ export default async function handler(req, res) {
 
   const { phone, password } = req.body;
   try {
-    const { rows } = await sql`SELECT * FROM users WHERE phone = ${phone}`;
+    const { rows } = await pool.query('SELECT * FROM users WHERE phone = $1', [phone]);
     const user = rows[0];
 
     if (!user) return res.status(401).json({ error: 'Invalid credentials' });
