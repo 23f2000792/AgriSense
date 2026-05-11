@@ -1,24 +1,10 @@
-import { Pool } from 'pg';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-
-let connectionString = process.env.DATABASE_URL || process.env.POSTGRES_URL || process.env.SUPABASE_URL || '';
-try {
-  const url = new URL(connectionString);
-  url.searchParams.delete('sslmode');
-  connectionString = url.toString();
-} catch (e) {}
-
-const pool = new Pool({
-  connectionString,
-  ssl: { rejectUnauthorized: false }
-});
+import { pool } from '../config/db.js';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'agrisense-secret-key-2026';
 
-export default async function handler(req, res) {
-  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
-
+export const login = async (req, res) => {
   const { phone, password } = req.body;
   try {
     const { rows } = await pool.query('SELECT * FROM users WHERE phone = $1', [phone]);
@@ -34,4 +20,4 @@ export default async function handler(req, res) {
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }
-}
+};

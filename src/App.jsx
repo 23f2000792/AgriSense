@@ -1,28 +1,28 @@
 import React, { useState, useEffect } from 'react';
-import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Map as MapIcon, LineChart, User, Leaf, Wifi, WifiOff } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import Dashboard from './components/Dashboard';
-import VisitCopilot from './components/VisitCopilot';
-import MapView from './components/MapView';
-import Insights from './components/Insights';
-import Profile from './components/Profile';
-import Login from './components/Login';
+import { Toaster } from 'react-hot-toast';
+import { motion, AnimatePresence } from 'framer-motion';
+
+import { AuthProvider, useAuth } from './contexts/AuthContext';
+import Header from './components/layout/Header';
+import BottomNav from './components/layout/BottomNav';
 import ReloadPrompt from './components/ReloadPrompt';
-import { db } from './db/db';
-import { useLiveQuery } from 'dexie-react-hooks';
-import { syncVisits } from './api';
+
+import Dashboard from './pages/Dashboard';
+import MapView from './pages/MapView';
+import Insights from './pages/Insights';
+import Profile from './pages/Profile';
+import Login from './pages/Login';
+import VisitCopilot from './pages/VisitCopilot';
+
 import './App.css';
+import { syncVisits } from './services/api.service';
 
-const App = () => {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const { t, i18n } = useTranslation();
-  
+const MainApp = () => {
+  const { user } = useAuth();
+  const [activeTab, setActiveTab] = useState('dashboard');
+  const [activeVisit, setActiveVisit] = useState(null);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
-  const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('token'));
-
-  const profile = useLiveQuery(() => db.profile.toCollection().first());
 
   useEffect(() => {
     const handleOnline = () => setIsOnline(true);
@@ -31,7 +31,6 @@ const App = () => {
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
 
-    // Background Polling for Real-Time feel (every 30 seconds)
     const interval = setInterval(async () => {
       if (navigator.onLine && localStorage.getItem('token')) {
         await syncVisits();
@@ -45,144 +44,60 @@ const App = () => {
     };
   }, []);
 
-  const handleLogin = () => {
-    setIsAuthenticated(true);
-    navigate('/');
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    setIsAuthenticated(false);
-  };
-
-  if (!isAuthenticated) {
-    return <Login onLogin={handleLogin} />;
+  if (!user) {
+    return <Login />;
   }
 
-  const getActiveTab = () => {
-    if (location.pathname.startsWith('/map')) return 'map';
-    if (location.pathname.startsWith('/insights')) return 'insights';
-    if (location.pathname.startsWith('/profile')) return 'profile';
-    return 'dashboard';
-  };
+  if (activeVisit) {
+    return <VisitCopilot visit={activeVisit} onBack={() => setActiveVisit(null)} />;
+  }
 
-  const activeTab = getActiveTab();
-
-  const toggleLanguage = () => {
-    i18n.changeLanguage(i18n.language === 'en' ? 'hi' : 'en');
+  const renderContent = () => {
+    switch (activeTab) {
+      case 'dashboard': return <Dashboard onStartVisit={setActiveVisit} />;
+      case 'map': return <MapView onStartVisit={setActiveVisit} />;
+      case 'insights': return <Insights />;
+      case 'profile': return <Profile />;
+      default: return <Dashboard onStartVisit={setActiveVisit} />;
+    }
   };
 
   return (
     <div className="app-container">
-      {/* Top Header Section */}
-      <header className="app-header" style={{ flexDirection: 'column', alignItems: 'stretch', gap: '12px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div className="header-brand">
-            <Leaf className="brand-icon" size={24} />
-            <div>
-              <h1 className="header-title" style={{ fontSize: '1rem' }}>AgriSense</h1>
-              <span className="header-subtitle">Field Copilot</span>
-            </div>
-          </div>
-          <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-            <button 
-              onClick={toggleLanguage}
-              style={{
-                background: 'rgba(255,255,255,0.1)',
-                border: 'none',
-                color: 'white',
-                padding: '4px 8px',
-                borderRadius: '12px',
-                fontSize: '0.8rem',
-                cursor: 'pointer'
-              }}
-            >
-              {i18n.language === 'en' ? 'EN / HI' : 'HI / EN'}
-            </button>
-            <div className="header-profile" onClick={() => navigate('/profile')} style={{ cursor: 'pointer' }}>
-              {profile ? profile.name.substring(0,2).toUpperCase() : 'AK'}
-            </div>
-          </div>
+      <Toaster position="top-center" reverseOrder={false} />
+      <ReloadPrompt />
+      <Header />
+      
+      {!isOnline && (
+        <div className="offline-banner">
+          You are currently offline. Changes will sync when reconnected.
         </div>
+      )}
 
-        {/* Greeting & Sync Status */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div>
-            <h2 style={{ fontSize: '1.2rem', color: '#fff', fontWeight: 600 }}>
-              {t('Good morning')}, {profile ? profile.name.split(' ')[0] : ''}
-            </h2>
-            <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-              {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })} • {profile?.territory || ''}
-            </p>
-          </div>
-          <div style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            gap: '6px', 
-            fontSize: '0.75rem', 
-            fontWeight: 600,
-            padding: '4px 10px',
-            borderRadius: '20px',
-            backgroundColor: isOnline ? 'rgba(16, 185, 129, 0.15)' : 'rgba(245, 158, 11, 0.15)',
-            color: isOnline ? 'var(--accent-primary)' : 'var(--alert-warning)'
-          }}>
-            {isOnline ? <Wifi size={14} /> : <WifiOff size={14} />}
-            {isOnline ? t('Synced') : t('Offline Mode')}
-          </div>
-        </div>
-      </header>
-
-      {/* Main Content Area */}
-      <main className="app-content">
-        <Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/visit/:id" element={<VisitCopilot />} />
-          <Route path="/map" element={<MapView />} />
-          <Route path="/insights" element={<Insights />} />
-          <Route path="/profile" element={<Profile onLogout={handleLogout} />} />
-        </Routes>
+      <main className="content-area pb-20">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeTab}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }}
+            style={{ height: '100%' }}
+          >
+            {renderContent()}
+          </motion.div>
+        </AnimatePresence>
       </main>
 
-      <ReloadPrompt />
-
-      {/* Bottom Navigation (4 Tabs) */}
-      <nav className="bottom-nav">
-        <button 
-          className={`nav-item ${activeTab === 'dashboard' ? 'active' : ''}`}
-          onClick={() => navigate('/')}
-          style={{ background: 'none', border: 'none', cursor: 'pointer' }}
-        >
-          <LayoutDashboard className="nav-icon" size={24} />
-          <span>{t('Today Plan')}</span>
-        </button>
-        <button 
-          className={`nav-item ${activeTab === 'map' ? 'active' : ''}`}
-          onClick={() => navigate('/map')}
-          style={{ background: 'none', border: 'none', cursor: 'pointer' }}
-        >
-          <MapIcon className="nav-icon" size={24} />
-          <span>{t('Map View')}</span>
-        </button>
-        <button 
-          className={`nav-item ${activeTab === 'insights' ? 'active' : ''}`}
-          onClick={() => navigate('/insights')}
-          style={{ background: 'none', border: 'none', cursor: 'pointer' }}
-        >
-          <LineChart className="nav-icon" size={24} />
-          <span>{t('Insights')}</span>
-        </button>
-        <button 
-          className={`nav-item ${activeTab === 'profile' ? 'active' : ''}`}
-          onClick={() => navigate('/profile')}
-          style={{ background: 'none', border: 'none', cursor: 'pointer' }}
-        >
-          <User className="nav-icon" size={24} />
-          <span>{t('Profile')}</span>
-        </button>
-      </nav>
+      <BottomNav activeTab={activeTab} setActiveTab={setActiveTab} />
     </div>
   );
 };
+
+const App = () => (
+  <AuthProvider>
+    <MainApp />
+  </AuthProvider>
+);
 
 export default App;

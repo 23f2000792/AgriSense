@@ -1,24 +1,23 @@
 import React, { useState } from 'react';
 import { Leaf, Lock, Phone } from 'lucide-react';
-import { login, syncVisits, fetchLiveWeatherAlerts } from '../api';
+import toast from 'react-hot-toast';
+import { login, syncVisits, fetchLiveWeatherAlerts } from '../services/api.service';
 import { db } from '../db/db';
+import { useAuth } from '../contexts/AuthContext';
 
-const Login = ({ onLogin }) => {
+const Login = () => {
   const [phone, setPhone] = useState('9876543210');
   const [password, setPassword] = useState('123456');
-  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const { login: authLogin } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
     try {
       const data = await login(phone, password);
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
+      authLogin(data.token, data.user);
       
-      // Setup Profile in Dexie
       await db.profile.clear();
       await db.profile.put({
         id: data.user.id,
@@ -29,13 +28,16 @@ const Login = ({ onLogin }) => {
         lastSync: new Date().toISOString()
       });
 
-      // Initial Sync
-      await syncVisits();
-      await fetchLiveWeatherAlerts();
-
-      onLogin();
+      toast.promise(
+        Promise.all([syncVisits(), fetchLiveWeatherAlerts()]),
+        {
+          loading: 'Syncing field data...',
+          success: 'Ready to go!',
+          error: 'Sync failed, falling back to offline mode'
+        }
+      );
     } catch (err) {
-      setError(err.message);
+      toast.error(err.message || 'Invalid credentials');
     } finally {
       setLoading(false);
     }
@@ -52,8 +54,6 @@ const Login = ({ onLogin }) => {
       </div>
 
       <form onSubmit={handleSubmit} className="glass-panel" style={{ width: '100%', padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-        {error && <div style={{ color: 'var(--alert-danger)', fontSize: '0.85rem', textAlign: 'center', background: 'var(--alert-danger-bg)', padding: '8px', borderRadius: '8px' }}>{error}</div>}
-        
         <div style={{ position: 'relative' }}>
           <Phone size={18} color="var(--text-muted)" style={{ position: 'absolute', left: '12px', top: '14px' }} />
           <input 

@@ -11,9 +11,12 @@
   },
   "dependencies": {
     "bcrypt": "^6.0.0",
+    "cors": "^2.8.6",
     "date-fns": "^4.1.0",
     "dexie": "^4.4.2",
     "dexie-react-hooks": "^4.4.0",
+    "express": "^5.2.1",
+    "framer-motion": "^12.38.0",
     "i18next": "^26.0.10",
     "jsonwebtoken": "^9.0.3",
     "leaflet": "^1.9.4",
@@ -21,9 +24,11 @@
     "pg": "^8.20.0",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
+    "react-hot-toast": "^2.6.0",
     "react-i18next": "^17.0.7",
     "react-leaflet": "^5.0.0",
-    "react-router-dom": "^7.15.0"
+    "react-router-dom": "^7.15.0",
+    "recharts": "^3.8.1"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

@@ -1,21 +1,8 @@
-import { Pool } from 'pg';
 import bcrypt from 'bcrypt';
+import { pool } from '../config/db.js';
 
-let connectionString = process.env.DATABASE_URL || process.env.POSTGRES_URL || process.env.SUPABASE_URL || '';
-try {
-  const url = new URL(connectionString);
-  url.searchParams.delete('sslmode');
-  connectionString = url.toString();
-} catch (e) {}
-
-const pool = new Pool({
-  connectionString,
-  ssl: { rejectUnauthorized: false }
-});
-
-export default async function handler(request, response) {
+export const initDb = async (req, res) => {
   try {
-    // 1. Create Tables
     await pool.query(`
       CREATE TABLE IF NOT EXISTS users (
         id VARCHAR(255) PRIMARY KEY,
@@ -58,13 +45,10 @@ export default async function handler(request, response) {
       );
     `);
 
-    // 2. Seed User if not exists
     const users = await pool.query(`SELECT count(*) as count FROM users`);
-    
     if (parseInt(users.rows[0].count) === 0) {
       console.log('Seeding Database with Indian Data...');
       const hashedPw = await bcrypt.hash('123456', 10);
-      
       await pool.query(
         `INSERT INTO users (id, name, phone, password, territory) VALUES ($1, $2, $3, $4, $5)`,
         ['REP-1', 'Rajesh Kumar', '9876543210', hashedPw, 'Guntur, AP']
@@ -85,8 +69,8 @@ export default async function handler(request, response) {
       );
     }
 
-    return response.status(200).json({ message: 'Database initialized successfully' });
+    return res.status(200).json({ message: 'Database initialized successfully' });
   } catch (error) {
-    return response.status(500).json({ error: error.message });
+    return res.status(500).json({ error: error.message });
   }
-}
+};
